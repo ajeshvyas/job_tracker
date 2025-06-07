@@ -47,3 +47,32 @@ def get_my_applications():
             "notes": a.notes
         } for a in apps
     ])
+
+# Update status or notes
+@jobs_bp.route("/applications/<int:id>", methods=["PUT"])
+@jwt_required
+def update_application(id):
+    appn = JobApplication.query.filter_by(id=id, user_id=g.current_user.id).first()
+    if not appn:
+        return jsonify({"error": "Application not found"}), 404
+
+    data = request.json
+    if "status" in data:
+        appn.status = data["status"]
+    if "notes" in data:
+        appn.notes = data["notes"]
+    db.session.commit()
+    return jsonify({"message": "Application updated"})
+
+# Delete application
+@jobs_bp.route("/applications/<int:id>", methods=["DELETE"])
+@jwt_required
+def delete_application(id):
+    appn = JobApplication.query.filter_by(id=id, user_id=g.current_user.id).first()
+    if not appn:
+        return jsonify({"error": "Application not found"}), 404
+
+    db.session.delete(appn)
+    db.session.commit()
+    return jsonify({"message": "Application deleted"})
+
